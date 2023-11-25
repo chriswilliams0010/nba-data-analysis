@@ -1,29 +1,31 @@
+#!/usr/bin/env python3
+
 import os
-import requests
 from bs4 import BeautifulSoup
 import pandas as pd
 import psycopg2
 from psycopg2 import sql
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+import time
 import logging
 
-user = os.getenv('DB_USER')
-password = os.getenv('DB_PASS')
-years = range(1991, 2023)
+user = os.getenv("DB_USER")
+password = os.getenv("DB_PASS")
+years = range(2022, 2023)
+DATA_DIR = "data"
+STANDINGS_DIR = os.path.join(DATA_DIR, "standings")
+SCORES_DIR = os.path.join(DATA_DIR, "scores")
 
 # connection parameters
-db_params = {
-    "dbname": "NBA",
-    "user": user,
-    "password": password,
-    "host": "localhost"
-}
+db_params = {"dbname": "NBA", "user": user, "password": password, "host": "localhost"}
 
-# logging.warning(f"{user}, {password}")
 
 def connect_db(params):
     """Connect to the postgresql db server"""
     conn = psycopg2.connect(**params)
     return conn
+
 
 def create_table(conn):
     """Create tables in the postgresql db"""
@@ -46,16 +48,87 @@ def create_table(conn):
     cur.close()
     conn.commit()
 
+
+def get_html(url, selector=None, sleep=5, retries=3):
+    html = None
+    for i in range(1, retries + 1):
+        time.sleep(sleep * i)
+        try:
+            driver = webdriver.Safari()
+
+            driver.get(url)
+            logging.warning(driver.title)
+
+            time.sleep(sleep)
+
+        except Exception as e:
+            logging.warning(f"Timeout error on {url}: {e}")
+            continue
+        finally:
+            driver.quit()
+        break
+    return html
+
+
 def scrape_nba_season(season):
     url = f"https://www.basketball-reference.com/leagues/NBA_{season}_games.html"
-    response = requests.get(url)
-    soup = BeautifulSoup(response.text, 'html.parser')
+    html = get_html(url)
+
+    soup = BeautifulSoup(html)
     links = soup.find_all("a")
-    standings_pages = [f"https://www.basketball-reference.com{l['href']}" for l in links]
+    standings_pages = [
+        f"https://www.basketball-reference.com{l['href']}" for l in links
+    ]
 
-    return standings_pages
+    for url in standings_pages:
+        save_path = os.path.join(STANDINGS_DIR, url.split("/")[-1])
+        if os.path.exists(save_path):
+            continue
+
+        html = get_html(url, "#all_schedule")
+        with open(save_path, "w+") as f:
+            f.write(html)
 
 
-standings_pages = scrape_nba_season(years[0])
+def scrape_game(standings_file):
+    with open(standings_file, "r") as f:
+        html = f.read()
 
-logging.warning(f'{standings_pages}')
+    soup = BeautifulSoup(html)
+    links = soup.find_all("a")
+    hrefs = [link.get("href") for link in links]
+    box_scores = [
+        f"https://www.basketball-reference.com{l}"
+        for l in hrefs
+        if l and "boxscore" in l and ".html" in l
+    ]
+
+    for url in box_scores:
+        save_path = os.path.join(SCORES_DIR, url.split("/")[-1])
+        logging.warning(save_path)
+        if os.path.exists(save_path):
+            continue
+
+        html = get_html(url, "#content")
+        if not html:
+            continue
+        with open(save_path, "w+") as f:
+            f.write(html)
+
+
+def main():
+    standings_files = os.listdir(STANDINGS_DIR)
+    for year in years:
+        scrape_nba_season(year)
+
+    for year in years:
+        files = [s for s in standings_files if str(year) in s]
+
+        for f in files:
+            filepath = os.path.join(STANDINGS_DIR, f)
+
+            scrape_game(filepath)
+
+
+if __name__ == "__main__":
+    main()
