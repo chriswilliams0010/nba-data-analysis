@@ -19,7 +19,7 @@ base_url = "https://www.basketball-reference.com/"
 # loop through seasons
 for season in seasons:
     data = False
-    url = base_url.format(season)
+    url = base_url + f"leagues/NBA_{season}.html"
     try:
         data = requests.get(url)
         logging.warning(f"html successful for {url}")
@@ -39,9 +39,10 @@ for season in seasons:
         try:
             data_players = requests.get(url)
             logging.warning(f"html successful for {url}")
-        except:
+        except Exception as e:
             logging.warning(f"An exception occured when accessing {url}: {e}")
         if data_players:
-            with open(f"./data/players/{season}.html", "w+") as f:
+            with open(f"./data/players/{season}-{month}.html", "w+") as f:
                 f.write(data_players.text)
+                logging.warning(f"./data/players/{season}-{month}.html written")
         time.sleep(5)
