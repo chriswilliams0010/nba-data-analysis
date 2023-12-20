@@ -2,7 +2,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 import os
 
-# Database connection settings
+# Database connection settings config in venv activate file
 DB_USERNAME = os.environ.get("DB_USER")
 DB_PASSWORD = os.environ.get("DB_PASS")
 DB_HOST = os.environ.get("DB_HOST")
@@ -15,11 +15,6 @@ DATABASE_URI = (
     f"postgresql+psycopg2://{DB_USERNAME}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 )
 
-# Create the SQLAlchemy engine
 engine = create_engine(DATABASE_URI, echo=True)
-
-# Create a configured "Session" class
 Session = sessionmaker(bind=engine)
-
-# Create a session
 session = Session()
