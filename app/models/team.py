@@ -17,6 +17,7 @@ class Team(Base):
 
     team_id = Column(Integer, primary_key=True)
     team_name = Column(String(255), nullable=False)
+    team_acronym = Column(String(3), nullable=False)
 
     def __repr__(self):
-        return f"<Team(team_id={self.team_id}, team_name='{self.team_name}')"
+        return f"<Team(team_id={self.team_id}, team_name='{self.team_name}')>"
