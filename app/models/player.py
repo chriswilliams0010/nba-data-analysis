@@ -43,4 +43,20 @@ class Player(Base):
     nba_final_year = Column(Integer)
 
     def __repr__(self):
-        return f"<Player(player_id={self.player_id}, player_name='{self.player_name}', position='{self.position}', height_in={self.height_in}, weight={self.weight}, birth_date={self.birth_date}, hometown='{self.hometown}', college='{self.college}', draft_year={self.draft_year}, draft_round={self.draft_round}, draft_pick={self.draft_pick}, nba_debut_year={self.nba_debut_year}, nba_final_year={self.nba_final_year})>"
+        return (
+            f"<Player("
+            f"player_id={self.player_id}, "
+            f"player_name='{self.player_name}', "
+            f"position='{self.position}', "
+            f"height_in={self.height_in}, "
+            f"weight={self.weight}, "
+            f"birth_date={self.birth_date}, "
+            f"hometown='{self.hometown}', "
+            f"college='{self.college}', "
+            f"draft_year={self.draft_year}, "
+            f"draft_round={self.draft_round}, "
+            f"draft_pick={self.draft_pick}, "
+            f"nba_debut_year={self.nba_debut_year}, "
+            f"nba_final_year={self.nba_final_year}"
+            f")>"
+        )
