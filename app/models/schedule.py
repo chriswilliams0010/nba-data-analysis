@@ -32,19 +32,20 @@ class Schedule(Base):
     date = Column(DateTime, nullable=False)
     start_et = Column(String(10))
     home_id = Column(Integer, ForeignKey('teams.team_id'), nullable=False)
-    home = relationship("Team")
     pts_home = Column(Integer)
     away_id = Column(Integer, ForeignKey("teams.team_id"), nullable=False)
-    away = relationship("Team")
     pts_away = Column(Integer)
     ot = Column(String(4))
     arena_id = Column(Integer, ForeignKey("arenas.arena_id"))
-    arena = relationship("Arena")
     attendance = Column(Integer)
     notes = Column(String(255))
     playoffs = Column(Boolean)
     url = Column(String(150))
 
+    home = relationship("Team")
+    away = relationship("Team")
+    arena = relationship("Arena")
+    
     def __repr__(self):
         return (f"<Schedule(schedule_id={self.schedule_id}, "
                 f"date={self.date}, "
